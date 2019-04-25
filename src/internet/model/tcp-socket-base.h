@@ -122,8 +122,7 @@ public:
  * the main TcpCongestionOps class. Switching between congestion algorithm is
  * now a matter of setting a pointer into the TcpSocketBase class. The idea
  * and the interfaces are inspired by the Linux operating system, and in
- * particular from the structure tcp_congestion_ops. The reference paper is
- * https://www.sciencedirect.com/science/article/pii/S1569190X15300939.
+ * particular from the structure tcp_congestion_ops.
  *
  * Transmission Control Block (TCB)
  * --------------------------------
@@ -209,8 +208,7 @@ public:
  * On the other side, inside TcpTxBuffer the received options (that contain
  * the SACK block) are processed and a particular data structure, called Scoreboard,
  * is filled. Please take a look at TcpTxBuffer and TcpRxBuffer documentation if
- * you need more information. The reference paper is
- * https://dl.acm.org/citation.cfm?id=3067666.
+ * you need more information.
  *
  */
 class TcpSocketBase : public TcpSocket
@@ -1211,8 +1209,7 @@ protected:
 
   Ptr<RttEstimator> m_rtt; //!< Round trip time estimator
 
-  // Rx and Tx buffer management
-  Ptr<TcpRxBuffer> m_rxBuffer; //!< Rx buffer (reordering buffer)
+  // Tx buffer management
   Ptr<TcpTxBuffer> m_txBuffer; //!< Tx buffer
 
   // State-related attributes
