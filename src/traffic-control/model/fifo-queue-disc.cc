@@ -22,6 +22,7 @@
 #include "fifo-queue-disc.h"
 #include "ns3/object-factory.h"
 #include "ns3/drop-tail-queue.h"
+#include "ns3/net-device-queue-interface.h"
 
 namespace ns3 {
 
@@ -41,6 +42,21 @@ TypeId FifoQueueDisc::GetTypeId (void)
                    MakeQueueSizeAccessor (&QueueDisc::SetMaxSize,
                                           &QueueDisc::GetMaxSize),
                    MakeQueueSizeChecker ())
+    .AddAttribute ("MeanPktSize",
+                   "Average of packet size",
+                   UintegerValue (500),
+                   MakeUintegerAccessor (&FifoQueueDisc::m_meanPktSize),
+                   MakeUintegerChecker<uint32_t> ())
+    .AddAttribute ("UseEcn",
+                   "True to use ECN (packets are marked instead of being dropped)",
+                   BooleanValue (false),
+                   MakeBooleanAccessor (&FifoQueueDisc::m_useEcn),
+                   MakeBooleanChecker ())
+    .AddAttribute ("MarkingThreshold",
+                   "Mark packets if queue occupancy is above this threshold",
+                   DoubleValue (17),
+                   MakeDoubleAccessor (&FifoQueueDisc::m_limit),
+                   MakeDoubleChecker<double> ())
   ;
   return tid;
 }
@@ -61,11 +77,17 @@ FifoQueueDisc::DoEnqueue (Ptr<QueueDiscItem> item)
 {
   NS_LOG_FUNCTION (this << item);
 
+  int32_t nQueued = GetInternalQueue (0)->GetCurrentSize ().GetValue () + (item->GetSize () / m_meanPktSize);
+
   if (GetCurrentSize () + item > GetMaxSize ())
     {
       NS_LOG_LOGIC ("Queue full -- dropping pkt");
       DropBeforeEnqueue (item, LIMIT_EXCEEDED_DROP);
       return false;
+    }
+  else if (nQueued > m_limit && m_useEcn && Mark (item, FORCED_MARK))
+    {
+      NS_LOG_DEBUG("\t Marking due to greater than limit");
     }
 
   bool retval = GetInternalQueue (0)->Enqueue (item);
@@ -147,6 +169,7 @@ void
 FifoQueueDisc::InitializeParams (void)
 {
   NS_LOG_FUNCTION (this);
+  m_limit = GetMaxSize ().GetValue () * (m_limit * 0.01);
 }
 
 } // namespace ns3

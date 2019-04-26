@@ -49,6 +49,7 @@ public:
 
   // Reasons for dropping packets
   static constexpr const char* LIMIT_EXCEEDED_DROP = "Queue disc limit exceeded";  //!< Packet dropped due to queue disc limit exceeded
+  static constexpr const char* FORCED_MARK = "Forced mark";       //!< Forced marks, nQueued > m_limit 
 
 private:
   virtual bool DoEnqueue (Ptr<QueueDiscItem> item);
@@ -56,6 +57,11 @@ private:
   virtual Ptr<const QueueDiscItem> DoPeek (void);
   virtual bool CheckConfig (void);
   virtual void InitializeParams (void);
+
+  // ** Variables supplied by user
+  bool m_useEcn;          //!< True if ECN is used (packets are marked instead of being dropped)
+  double m_limit;         //!< Packets are marked if queue occupancy is above this threshold
+  uint32_t m_meanPktSize; //!< Mean Packet Size
 };
 
 } // namespace ns3
